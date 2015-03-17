@@ -1,0 +1,155 @@
+;; An implementation of Dijkstra's algorithm in NetLogo
+;; (single-pair shortest path)
+
+to setup
+  clear-all
+
+  setup-globals
+  setup-graph
+
+  reset-ticks
+end
+
+to setup-globals
+  set absentTentativeCost -1
+end
+
+to setup-graph
+  setup-vertices
+  setup-edges-with-n-vertices-per-edge 3
+
+  setup-initial-vertex
+  setup-target-vertex
+end
+
+to setup-vertices
+  create-ordered-vertices 10 [
+    set tentativeCost absentTentativeCost
+    set visited? false
+    set predecessor nobody
+
+    fd (random 9) + 1
+
+    set shape "dot"
+    set color white
+    set label tentativeCost
+  ]
+end
+
+to setup-edges-with-n-vertices-per-edge [n]
+  ask vertices [
+    let nearest-n-vertices min-n-of n other vertices [ distance myself ]
+    create-edges-with nearest-n-vertices
+  ]
+
+  ask edges [
+    set cost (random 10) + 1
+    set label cost
+    set label-color 3
+    set color 3
+  ]
+end
+
+to setup-initial-vertex
+  set initialVertex random-vertex
+
+  ask initialVertex [
+    set tentativeCost 0
+    set visited? true
+
+    set shape "circle 2"
+    set color green
+    set label tentativeCost
+  ]
+
+  set currentVertex initialVertex
+end
+
+to setup-target-vertex
+  set targetVertex random-vertex
+
+  if (targetVertex = initialVertex) [
+    setup-target-vertex
+  ]
+
+  ask targetVertex [
+    set shape "x"
+    set color red
+  ]
+end
+
+to step
+  ask currentVertex [
+    update-tentative-cost-on-unvisited-neighbors
+    set visited? true
+  ]
+
+  ifelse (count unvisited-vertices != 0) [
+    update-current-vertex
+  ][
+    reset-perspective ;; "unwatch"
+    highlight-shortest-path targetVertex
+
+    stop
+  ]
+
+  tick
+end
+
+to update-tentative-cost-on-unvisited-neighbors
+  let neighborVertices link-neighbors
+  let unvisitedNeighborVertices neighborVertices with [ not visited? ]
+
+  ;; Update tentative costs
+  ask unvisitedNeighborVertices [
+    let calculatedCost (
+      [ tentativeCost ] of currentVertex
+      + [ cost ] of link-with currentVertex
+    )
+
+    if (tentativeCost > calculatedCost or tentativeCost = absentTentativeCost) [
+      set tentativeCost calculatedCost
+      set label tentativeCost
+
+      set predecessor myself
+    ]
+  ]
+end
+
+to update-current-vertex
+  let cheapestUnvisitedVertex (
+    min-one-of (
+      unvisited-vertices with [ tentativeCost != absentTentativeCost ]
+    ) [ tentativeCost ]
+  )
+
+  set currentVertex cheapestUnvisitedVertex
+  watch currentVertex
+end
+
+to highlight-shortest-path [_vertex] ;; name clash
+  if (not (_vertex = initialVertex)) [
+    ask _vertex [
+      let edge-to-predecessor (link-with predecessor)
+      ask edge-to-predecessor [
+        set color green
+
+        ask other-end [
+          set color green
+        ]
+      ]
+
+      highlight-shortest-path predecessor
+    ]
+  ]
+end
+
+to-report random-vertex
+  let numberOfVertices count vertices
+  let randomVertexIndex random numberOfVertices
+  report vertex randomVertexIndex
+end
+
+to-report unvisited-vertices
+  report (vertices with [ not visited? ])
+end

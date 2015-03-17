@@ -1,0 +1,13 @@
+;; An implementation of Dijkstra's algorithm in NetLogo
+;; (single-pair shortest path)
+;;
+;; Dominic Bauer <bauerdominic@gmail.com>
+
+
+globals [
+  initialVertex
+  targetVertex
+  currentVertex
+
+  absentTentativeCost ;; = -1
+]

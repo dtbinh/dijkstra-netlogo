@@ -1,0 +1,21 @@
+;; An implementation of the Dijkstra algorithm in NetLogo
+;; (single-pair shortest path)
+
+
+breed [
+  vertices vertex
+]
+
+vertices-own [
+  tentativeCost
+  predecessor
+  visited?
+]
+
+undirected-link-breed [
+  edges edge
+]
+
+edges-own [
+  cost
+]
